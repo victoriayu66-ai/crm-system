@@ -9,15 +9,676 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.6.0/echarts.min.js"></script>
+    <style>
+        * {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            transform: translateX(5px);
+        }
+        
+        .modal {
+            backdrop-filter: blur(5px);
+        }
+    </style>
 </head>
-<body>
-    <div id="authPage" class="min-h-screen flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-lg">
-            <h1 class="text-2xl font-bold mb-4">客户管理系统</h1>
-            <p>正在加载...</p>
+<body class="min-h-screen">
+    <!-- 登录/注册页面 -->
+    <div id="authPage" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass-effect rounded-3xl shadow-2xl p-8 w-full max-w-md">
+            <!-- 登录表单 -->
+            <div id="loginForm">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <i class="fas fa-users text-white text-3xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">客户管理系统</h1>
+                    <p class="text-gray-600">欢迎回来，请登录您的账号</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">企业邮箱</label>
+                        <input type="email" id="loginEmail" placeholder="请输入企业邮箱 @fengfancloud.com" 
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                        <input type="password" id="loginPassword" placeholder="请输入密码" 
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                    </div>
+                    <button onclick="handleLogin()" class="w-full btn-primary text-white py-3 rounded-lg font-medium">
+                        <i class="fas fa-sign-in-alt mr-2"></i>登录
+                    </button>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600">还没有账号？ 
+                        <button onclick="showRegisterForm()" class="text-purple-600 hover:text-purple-700 font-medium">立即注册</button>
+                    </p>
+                </div>
+                
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>默认管理员账号：</strong><br>
+                        邮箱：admin@fengfancloud.com<br>
+                        密码：admin123
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 注册表单 -->
+            <div id="registerForm" style="display: none;">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <i class="fas fa-user-plus text-white text-3xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">注册新账号</h1>
+                    <p class="text-gray-600">创建您的企业账号</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">姓名</label>
+                        <input type="text" id="registerName" placeholder="请输入您的姓名" 
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">企业邮箱</label>
+                        <input type="email" id="registerEmail" placeholder="请输入企业邮箱 @fengfancloud.com" 
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-exclamation-circle mr-1"></i>仅支持公司企业邮箱注册
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                        <input type="password" id="registerPassword" placeholder="请输入密码（至少6位）" 
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">确认密码</label>
+                        <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" 
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                    </div>
+                    <button onclick="handleRegister()" class="w-full btn-primary text-white py-3 rounded-lg font-medium">
+                        <i class="fas fa-user-plus mr-2"></i>注册
+                    </button>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600">已有账号？ 
+                        <button onclick="showLoginForm()" class="text-purple-600 hover:text-purple-700 font-medium">立即登录</button>
+                    </p>
+                </div>
+                
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>注意：</strong>必须使用公司企业邮箱（@fengfancloud.com）注册
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- 主系统 -->
+    <div id="mainSystem" style="display: none;">
+        <div class="flex h-screen">
+            <!-- 侧边栏 -->
+            <div class="w-64 glass-effect shadow-xl">
+                <div class="p-6">
+                    <div class="flex items-center space-x-3 mb-8">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-users text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800">CRM系统</h1>
+                            <p class="text-xs text-gray-500">v2.0</p>
+                        </div>
+                    </div>
+                    
+                    <nav class="space-y-2">
+                        <button onclick="showPage('dashboard')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg bg-purple-600 text-white">
+                            <i class="fas fa-chart-line w-5"></i>
+                            <span>数据概览</span>
+                        </button>
+                        <button onclick="showPage('customers')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100">
+                            <i class="fas fa-users w-5"></i>
+                            <span>客户列表</span>
+                        </button>
+                        <button onclick="showPage('interactions')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100">
+                            <i class="fas fa-comments w-5"></i>
+                            <span>交互记录</span>
+                        </button>
+                        <button onclick="showPage('opportunities')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100">
+                            <i class="fas fa-briefcase w-5"></i>
+                            <span>商机管理</span>
+                        </button>
+                        <button onclick="showPage('analytics')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100">
+                            <i class="fas fa-chart-pie w-5"></i>
+                            <span>数据分析</span>
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- 用户信息 -->
+                <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800" id="userName">用户名</p>
+                                <p class="text-xs text-gray-500" id="userEmail">邮箱</p>
+                                <div id="userRole" class="text-xs mt-1"></div>
+                            </div>
+                        </div>
+                        <button onclick="handleLogout()" class="text-gray-400 hover:text-red-600 transition">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+```html
+            <!-- 主内容区 -->
+            <div class="flex-1 overflow-auto">
+                <!-- 数据概览页面 -->
+                <div id="dashboardPage" class="p-8">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-2">数据概览</h2>
+                        <p class="text-gray-600">实时查看您的业务数据</p>
+                    </div>
+                    
+                    <!-- 统计卡片 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="glass-effect rounded-2xl p-6 card-hover">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                                </div>
+                                <span class="status-badge px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">总数</span>
+                            </div>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-2" id="totalCustomers">0</h3>
+                            <p class="text-gray-600 text-sm">总客户数</p>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6 card-hover">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                                </div>
+                                <span class="status-badge px-3 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium">活跃</span>
+                            </div>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-2" id="activeCustomers">0</h3>
+                            <p class="text-gray-600 text-sm">活跃客户</p>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6 card-hover">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-comments text-purple-600 text-xl"></i>
+                                </div>
+                                <span class="status-badge px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-medium">本月</span>
+                            </div>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-2" id="monthInteractions">0</h3>
+                            <p class="text-gray-600 text-sm">本月交互</p>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6 card-hover">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-orange-600 text-xl"></i>
+                                </div>
+                                <span class="status-badge px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-medium">总额</span>
+                            </div>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-2" id="totalRevenue">¥0</h3>
+                            <p class="text-gray-600 text-sm">总成交额</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 图表 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass-effect rounded-2xl p-6 card-hover">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">客户增长趋势</h3>
+                            <div id="growthChart" style="height: 300px;"></div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6 card-hover">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">客户来源分布</h3>
+                            <div id="sourceChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 客户列表页面 -->
+                <div id="customersPage" style="display: none;" class="p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">客户列表</h2>
+                            <p class="text-gray-600">管理您的所有客户信息</p>
+                        </div>
+                        <button onclick="showAddCustomerModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2"></i>添加客户
+                        </button>
+                    </div>
+                    
+                    <!-- 搜索和筛选 -->
+                    <div class="glass-effect rounded-2xl p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" id="customerSearch" placeholder="搜索客户姓名或公司..." 
+                                   onkeyup="renderCustomers()"
+                                   class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                            <select id="statusFilter" onchange="renderCustomers()" 
+                                    class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                                <option value="all">所有状态</option>
+                                <option value="活跃">活跃</option>
+                                <option value="潜在">潜在</option>
+                                <option value="休眠">休眠</option>
+                            </select>
+                            <select id="sourceFilter" onchange="renderCustomers()" 
+                                    class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                                <option value="all">所有来源</option>
+                                <option value="网站">网站</option>
+                                <option value="推荐">推荐</option>
+                                <option value="广告">广告</option>
+                                <option value="展会">展会</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- 客户表格 -->
+                    <div class="glass-effect rounded-2xl overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">客户信息</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">联系方式</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">销售负责人</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">感兴趣产品</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">来源</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerTableBody" class="divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 交互记录页面 -->
+                <div id="interactionsPage" style="display: none;" class="p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">交互记录</h2>
+                            <p class="text-gray-600">查看所有客户交互历史</p>
+                        </div>
+                        <button onclick="showAddInteractionModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2"></i>添加记录
+                        </button>
+                    </div>
+                    
+                    <div id="interactionsList" class="space-y-4">
+                    </div>
+                </div>
+
+                <!-- 商机管理页面 -->
+                <div id="opportunitiesPage" style="display: none;" class="p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">商机管理</h2>
+                            <p class="text-gray-600">跟踪和管理销售商机</p>
+                        </div>
+                        <button onclick="showAddOpportunityModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2"></i>添加商机
+                        </button>
+                    </div>
+                    
+                    <!-- 商机统计 -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                        <div class="glass-effect rounded-2xl p-6">
+                            <h3 class="text-gray-600 text-sm mb-2">总商机数</h3>
+                            <p class="text-3xl font-bold text-gray-800" id="totalOpportunities">0</p>
+                        </div>
+                        <div class="glass-effect rounded-2xl p-6">
+                            <h3 class="text-gray-600 text-sm mb-2">进行中</h3>
+                            <p class="text-3xl font-bold text-blue-600" id="inProgressOpportunities">0</p>
+                        </div>
+                        <div class="glass-effect rounded-2xl p-6">
+                            <h3 class="text-gray-600 text-sm mb-2">已交付</h3>
+                            <p class="text-3xl font-bold text-green-600" id="deliveredOpportunities">0</p>
+                        </div>
+                        <div class="glass-effect rounded-2xl p-6">
+                            <h3 class="text-gray-600 text-sm mb-2">商机总额</h3>
+                            <p class="text-3xl font-bold text-orange-600" id="totalOpportunityAmount">¥0</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 搜索和筛选 -->
+                    <div class="glass-effect rounded-2xl p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" id="opportunitySearch" placeholder="搜索客户、公司或产品..." 
+                                   onkeyup="renderOpportunities()"
+                                   class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                            <select id="opportunityStatusFilter" onchange="renderOpportunities()" 
+                                    class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                                <option value="all">所有状态</option>
+                                <option value="进行中">进行中</option>
+                                <option value="已交付">已交付</option>
+                            </select>
+                            <select id="opportunityProductFilter" onchange="renderOpportunities()" 
+                                    class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                                <option value="all">所有产品</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- 商机表格 -->
+                    <div class="glass-effect rounded-2xl overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">客户信息</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">联系方式</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">产品</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">金额</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">周期</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="opportunityTableBody" class="divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 数据分析页面 -->
+                <div id="analyticsPage" style="display: none;" class="p-8">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-2">数据分析</h2>
+                        <p class="text-gray-600">深入了解您的业务数据</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass-effect rounded-2xl p-6">
+                            <div id="statusChart" style="height: 400px;"></div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6">
+                            <div id="trendChart" style="height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    ```html
+    <!-- 添加客户模态框 -->
+    <div id="customerModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="glass-effect rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="customerModalTitle" class="text-2xl font-bold text-gray-800">添加客户</h3>
+                <button onclick="hideCustomerModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="customerForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">客户姓名 *</label>
+                        <input type="text" id="customerName" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">公司名称 *</label>
+                        <input type="text" id="customerCompany" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">邮箱 *</label>
+                        <input type="email" id="customerEmail" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">电话</label>
+                        <input type="tel" id="customerPhone" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">客户来源</label>
+                        <select id="customerSource" 
+                                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                            <option value="网站">网站</option>
+                            <option value="推荐">推荐</option>
+                            <option value="广告">广告</option>
+                            <option value="展会">展会</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">客户状态</label>
+                        <select id="customerStatus" 
+                                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                            <option value="活跃">活跃</option>
+                            <option value="潜在">潜在</option>
+                            <option value="休眠">休眠</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">销售负责人</label>
+                        <input type="text" id="customerSalesPerson" placeholder="多个负责人用逗号分隔" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">感兴趣的产品</label>
+                        <input type="text" id="customerProducts" placeholder="多个产品用逗号分隔" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">备注</label>
+                    <textarea id="customerNotes" rows="3" 
+                              class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500"></textarea>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="saveCustomer()" class="flex-1 btn-primary text-white py-3 rounded-lg font-medium">
+                        <i class="fas fa-save mr-2"></i>保存
+                    </button>
+                    <button type="button" onclick="hideCustomerModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300">
+                        取消
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加交互记录模态框 -->
+    <div id="interactionModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="glass-effect rounded-3xl p-8 max-w-2xl w-full">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">添加交互记录</h3>
+                <button onclick="hideInteractionModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="interactionForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">选择客户 *</label>
+                    <select id="interactionCustomer" required 
+                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                        <option value="">请选择客户</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">交互类型 *</label>
+                    <select id="interactionType" required 
+                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                        <option value="电话">电话</option>
+                        <option value="邮件">邮件</option>
+                        <option value="会议">会议</option>
+                        <option value="拜访">拜访</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">交互内容 *</label>
+                    <textarea id="interactionContent" rows="4" required 
+                              class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">交互日期 *</label>
+                    <input type="date" id="interactionDate" required 
+                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="saveInteraction()" class="flex-1 btn-primary text-white py-3 rounded-lg font-medium">
+                        <i class="fas fa-save mr-2"></i>保存
+                    </button>
+                    <button type="button" onclick="hideInteractionModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300">
+                        取消
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加商机模态框 -->
+    <div id="opportunityModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="glass-effect rounded-3xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="opportunityModalTitle" class="text-2xl font-bold text-gray-800">添加商机</h3>
+                <button onclick="hideOpportunityModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="opportunityForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">客户姓名 *</label>
+                        <input type="text" id="oppCustomerName" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">公司名称 *</label>
+                        <input type="text" id="oppCompany" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">邮箱 *</label>
+                        <input type="email" id="oppEmail" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">电话</label>
+                        <input type="tel" id="oppPhone" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">产品名称 *</label>
+                        <input type="text" id="oppProduct" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">产品报价 (¥) *</label>
+                        <input type="number" id="oppOriginalPrice" required onchange="calculateOpportunityAmount()" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">折扣比例 (%)</label>
+                        <input type="number" id="oppDiscount" value="0" min="0" max="100" onchange="calculateOpportunityAmount()" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                        <p class="text-xs text-gray-500 mt-1">0表示无折扣，10表示9折</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">合同金额 (¥) *</label>
+                        <input type="number" id="oppAmount" required readonly 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">交付状态</label>
+                        <select id="oppStatus" 
+                                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                            <option value="进行中">进行中</option>
+                            <option value="已交付">已交付</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">交付周期 (天)</label>
+                        <input type="number" id="oppDeliveryDays" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">回款周期 (天)</label>
+                        <input type="number" id="oppPaymentDays" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">备注</label>
+                    <textarea id="oppNotes" rows="3" 
+                              class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500"></textarea>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="saveOpportunity()" class="flex-1 btn-primary text-white py-3 rounded-lg font-medium">
+                        <i class="fas fa-save mr-2"></i>保存
+                    </button>
+                    <button type="button" onclick="hideOpportunityModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300">
+                        取消
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
-```
